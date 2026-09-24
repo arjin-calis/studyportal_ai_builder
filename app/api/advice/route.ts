@@ -5,31 +5,31 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { master, metCourses, missingCourses } = body;
     
-    // Güvenli yöntem: Şifreyi .env.local'dan çekiyoruz
+    // Secure method: Fetching the API key from .env.local
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-       console.error("Şifre Bulunamadı: .env.local dosyası okunamıyor.");
-       return NextResponse.json({ advice: "API Key bulunamadı! Lütfen .env.local dosyasını kontrol et ve sunucuyu yeniden başlat (npm run dev)." }, { status: 500 });
+       console.error("API Key Not Found: Cannot read the .env.local file.");
+       return NextResponse.json({ advice: "API Key not found! Please check your .env.local file and restart the server." }, { status: 500 });
     }
 
-    const prompt = `
-      Sen Eindhoven University of Technology (TU/e) için uzman bir akademik danışmansın.
-      Bir öğrenci "${master}" master programına başvurmayı planlıyor.
+const prompt = `
+      You are an expert academic advisor for Eindhoven University of Technology (TU/e).
+      A student is planning to apply for the "${master}" master's program.
       
-      Öğrencinin başarıyla tamamladığı lisans dersleri: 
-      ${metCourses.map((c: any) => c.name).join(', ') || 'Yok'}
+      Bachelor's courses successfully completed by the student: 
+      ${metCourses.map((c: any) => c.name).join(', ') || 'None'}
       
-      Öğrencinin EKSİK olduğu master önkoşulları: 
-      ${missingCourses.map((c: any) => c.name).join(', ') || 'Yok'}
+      Master's prerequisites the student is MISSING: 
+      ${missingCourses.map((c: any) => c.name).join(', ') || 'None'}
       
-      Öğrenciye kısa, profesyonel ve yönlendirici bir tavsiye ver. 
-      Eğer eksiği yoksa onu tebrik et ve kabul şansını artıracak portfolyo önerileri ver. 
-      Eğer eksiği varsa, bu dersleri lisans eğitiminin Q3/Q4 dönemlerinde almasının ne kadar kritik olduğunu, aksi takdirde pre-master okumak zorunda kalacağını dostane bir dille anlat.
-      Sadece doğrudan öğrenciye hitap eden tavsiye metnini yaz, ekstra açıklama yapma.
+      Provide the student with short, professional, and guiding advice. 
+      If they have no missing prerequisites, congratulate them and offer portfolio suggestions to increase their chances of admission. 
+      If they are missing prerequisites, explain in a friendly tone how critical it is to take these courses during the Q3/Q4 quartiles of their bachelor's studies, otherwise they will be forced to do a pre-master program.
+      Write only the advice text addressing the student directly; do not provide any extra explanations.
     `;
 
-    // En stabil model olan 'gemini-pro' kullanılıyor
+    // Using the most stable model 'gemini-pro'
     const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -40,8 +40,8 @@ export async function POST(req: Request) {
 
     if (!aiResponse.ok) {
       const errorData = await aiResponse.json();
-      console.error("Gemini API Hata Detayı:", errorData);
-      return NextResponse.json({ advice: `Yapay zeka sunucusu şu anda yanıt veremiyor. Lütfen daha sonra tekrar dene.` }, { status: 500 });
+      console.error("Gemini API Error Details:", errorData);
+      return NextResponse.json({ advice: `The AI server is currently unresponsive. Please try again later.` }, { status: 500 });
     }
 
     const aiData = await aiResponse.json();
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ advice: finalAdvice });
 
   } catch (error: any) {
-    console.error("Sistemsel Hata:", error);
-    return NextResponse.json({ advice: `Sunucu bağlantısında bir sorun oluştu.` }, { status: 500 });
+    console.error("System Error:", error);
+    return NextResponse.json({ advice: `A server connection issue occurred.` }, { status: 500 });
   }
 }
