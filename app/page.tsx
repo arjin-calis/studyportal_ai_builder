@@ -10,7 +10,6 @@ export default function Home() {
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
   const [showResult, setShowResult] = useState<boolean>(false);
   
-  // AI Advisor için yeni state'ler
   const [aiAdvice, setAiAdvice] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
 
@@ -23,7 +22,7 @@ export default function Home() {
       }
     });
     setShowResult(false); 
-    setAiAdvice(null); // Yeni seçim yapıldığında eski AI tavsiyesini sıfırla
+    setAiAdvice(null);
   };
 
   const targetMasterReqs = MASTER_REQUIREMENTS[master]?.requiredCourses || [];
@@ -38,7 +37,6 @@ export default function Home() {
     .map(id => TUE_COURSES.find(c => c.id === id))
     .filter((course): course is Course => course !== undefined);
 
-// AI Danışmanına İstek Atan Fonksiyon
   const getAiAdvice = async () => {
     setIsAiLoading(true);
     setAiAdvice(null);
@@ -56,19 +54,16 @@ export default function Home() {
         })
       });
 
-      // Önce sunucudan gelen veriyi okuyoruz
       const data = await response.json();
 
       if (!response.ok) {
-        // Eğer sunucu hata verdiyse (500), backend'in gönderdiği detaylı mesajı ekrana bas
-        setAiAdvice(data.advice || "Bilinmeyen bir sunucu hatası.");
+        setAiAdvice(data.advice || "Unknown server.");
       } else {
-        // Başarılıysa yapay zeka tavsiyesini ekrana bas
         setAiAdvice(data.advice);
       }
     } catch (error) {
       console.error(error);
-      setAiAdvice("Sunucuya hiç ulaşılamadı. Terminali kontrol et.");
+      setAiAdvice("Could not reach the server. Check the terminal.");
     } finally {
       setIsAiLoading(false);
     }
@@ -141,7 +136,7 @@ export default function Home() {
           Check my eligibility
         </button>
 
-        {/* SONUÇ VE AI ADVISOR BÖLÜMÜ */}
+        {/* AI Advisor part */}
         {showResult && (
           <div className="mt-8 pt-6 border-t border-gray-200 animate-fade-in">
             <h2 className="text-2xl font-bold mb-4 text-gray-800">
@@ -186,7 +181,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* AI ADVISOR BUTONU VE EKRANI */}
+            {/* AI ADVISOR BUTTON */}
             <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-100">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-indigo-900 flex items-center">
